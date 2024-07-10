@@ -1,0 +1,41 @@
+##enable named panes in tmux.conf with:
+#set -g pane-border-format "#{pane_index} #{pane_title}"
+#set -g pane-border-status bottom
+
+name: pioneer3dx
+#root: /home/markus/projects/tuw-ros
+
+windows:
+  - simulation:
+      layout: 3d71,158x34,0,0[158x2,0,0{52x2,0,0,0,52x2,53,0,1,52x2,106,0,2},158x2,0,3{52x2,0,3,3,52x2,53,3,4,52x2,106,3,5},158x2,0,6{52x2,0,6,6,52x2,53,6,8,52x2,106,6,9},158x25,0,9,7]
+      panes: 
+        - stage: 
+          - printf '\033]2;%s\033\\' 'stage'
+          - ros2 launch stage_ros2 stage.launch.py
+        - robot description: 
+          - printf '\033]2;%s\033\\' 'robot description'
+          - ros2 launch tuw_gazebo_models robot_description.launch.py model_name:=robot0  robot:=pioneer3dx
+        - laser filter: 
+          - printf '\033]2;%s\033\\' 'laser filter'
+          - ros2 launch tuw_nav2 laser_filter_launch.py use_sim_time:=true filter_yaml:=shadow_filter_stage.yaml scan_src:=base_scan
+        - rviz: 
+          - printf '\033]2;%s\033\\' 'rviz'
+          - ros2 launch tuw_nav2 rviz_launch.py use_sim_time:=true config:=nav2_graph
+        - map: 
+          - printf '\033]2;%s\033\\' 'map'
+          - ros2 launch tuw_nav2 map_server_launch.py use_sim_time:=true environment:=straden
+        - localization: 
+          - printf '\033]2;%s\033\\' 'localization'
+          - ros2 launch tuw_nav2 localization_launch.py use_sim_time:=true init_pose_yaml:=init_pose_cave.yaml vehilce:=pioneer3dx
+        - graph publisher: 
+          - printf '\033]2;%s\033\\' 'graph publisher'
+          - sleep 5; ros2 run tuw_graph_dense generate_dense_graph --ros-args -p erosion_size:=6 -p grid_resolution:=10 -p connectivity:=4
+        - nav2-full: 
+          - printf '\033]2;%s\033\\' 'nav2-full'
+          - read -p "start nav2"; ros2 launch tuw_nav2 nav2_minimal_launch.py
+        - nav2-without-planner: 
+          - printf '\033]2;%s\033\\' 'nav2-without-planner'
+          - read -p "start nav2"; ros2 launch tuw_nav2 nav2_minimal_launch.py planner_server_yaml:=empty
+        - planner: 
+          - printf '\033]2;%s\033\\' 'planner'
+          - read -p "start nav2"; ros2 run nav2_planner planner_server --ros-args --params-file ws02/src/tuw_planner/tuw_planner_graph/config/nav2/astar.yaml

@@ -1,0 +1,5 @@
+<library path="tuw_planner_graph_plugin">
+	<class name="tuw_planner_graph/GraphAStar" type="tuw_planner_graph::GraphAStar" base_class_type="nav2_core::GlobalPlanner">
+	  <description>This is an example plugin which produces straight path.</description>
+	</class>
+</library>
